@@ -1,0 +1,99 @@
+{
+  "extName": {
+    "message": "密码管理器"
+  },
+  "extDescription": {
+    "message": "保存和管理网站账号密码"
+  },
+  "showPassword": {
+    "message": "显示密码"
+  },
+  "hidePassword": {
+    "message": "隐藏密码"
+  },
+  "linkSites": {
+    "message": "关联站点"
+  },
+  "export": {
+    "message": "导出"
+  },
+  "import": {
+    "message": "导入"
+  },
+  "clearCurrent": {
+    "message": "清除当前"
+  },
+  "clearAll": {
+    "message": "清除所有"
+  },
+  "username": {
+    "message": "用户名"
+  },
+  "password": {
+    "message": "密码"
+  },
+  "note": {
+    "message": "备注（选填）"
+  },
+  "saveAccount": {
+    "message": "保存账号"
+  },
+  "updateAccount": {
+    "message": "更新账号"
+  },
+  "fill": {
+    "message": "填充"
+  },
+  "edit": {
+    "message": "编辑"
+  },
+  "delete": {
+    "message": "删除"
+  },
+  "accountsCount": {
+    "message": "共 $count$ 个账号",
+    "placeholders": {
+      "count": {
+        "content": "$1"
+      }
+    }
+  },
+  "currentSite": {
+    "message": "当前站点："
+  },
+  "relatedSitesPlaceholder": {
+    "message": "输入要关联的站点（用逗号分隔）"
+  },
+  "saveSiteLinks": {
+    "message": "保存关联"
+  },
+  "cancel": {
+    "message": "取消"
+  },
+  "confirmDelete": {
+    "message": "确定要删除这个账号吗？"
+  },
+  "confirmClearCurrent": {
+    "message": "确定要清除 $site$ 下保存的所有账号吗？",
+    "placeholders": {
+      "site": {
+        "content": "$1"
+      }
+    }
+  },
+  "confirmClearAll": {
+    "message": "确定要清除所有网站的账号吗？此操作将清空所有保存的数据且不可恢复！"
+  },
+  "noAccounts": {
+    "message": "当前网站没有保存的账号"
+  },
+  "dataCleared": {
+    "message": "账号数据已清除"
+  },
+  "importSuccess": {
+    "message": "数据导入成功"
+  },
+  "importError": {
+    "message": "导入失败：无效的文件格式"
+  }
+} 

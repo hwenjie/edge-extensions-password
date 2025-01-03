@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="actions">
+      <button id="togglePasswords">显示密码</button>
+      <button id="linkSites">关联站点</button>
+      <button id="exportData">导出</button>
+      <button id="importData">导入</button>
+      <div class="danger-actions">
+        <button id="clearCurrent" class="btn-warning">清除当前</button>
+        <button id="clearAll" class="btn-danger">清除所有</button>
+      </div>
+      <input type="file" id="importFile" accept=".json" style="display: none;">
+    </div>
+
+    <div class="main-content">
+      <div class="input-section">
+        <div class="form-group">
+          <div class="input-wrapper">
+            <input type="text" id="username" placeholder="用户名">
+          </div>
+          <div class="input-wrapper">
+            <input type="password" id="password" placeholder="密码">
+            <button class="toggle-password" type="button">👁</button>
+          </div>
+          <div class="input-wrapper">
+            <input type="text" id="note" placeholder="备注（选填）">
+          </div>
+          <button id="saveAccount">保存账号</button>
+        </div>
+      </div>
+      
+      <div class="accounts-section">
+        <div id="accountsList"></div>
+      </div>
+    </div>
+
+    <div id="linkSitesModal" class="modal">
+      <div class="modal-content">
+        <h3>关联站点管理</h3>
+        <p class="current-site">当前站点：<span id="currentSiteName"></span></p>
+        <div class="input-wrapper">
+          <input type="text" id="relatedSites" placeholder="输入要关联的站点（用逗号分隔）">
+        </div>
+        <div class="modal-buttons">
+          <button id="saveSiteLinks">保存关联</button>
+          <button id="cancelSiteLinks">取消</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html> 
