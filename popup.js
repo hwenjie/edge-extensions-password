@@ -332,8 +332,11 @@ function editAccount(index) {
 
 // 自动填充账号密码
 function fillAccount(index) {
-  chrome.storage.local.get([currentUrl], function(result) {
-    const accounts = result[currentUrl] || [];
+  const relatedGroup = findRelatedGroup(currentUrl);
+  const siteToLoad = relatedGroup ? relatedGroup[0] : currentUrl;
+  
+  chrome.storage.local.get([siteToLoad], function(result) {
+    const accounts = result[siteToLoad] || [];
     const account = accounts[index];
     
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
@@ -389,14 +392,17 @@ document.getElementById('importFile').addEventListener('change', function(e) {
 // 添加删除账号功能
 function deleteAccount(index) {
   if (confirm('确定要删除这个账号吗？')) {
-    chrome.storage.local.get([currentUrl], function(result) {
-      const accounts = result[currentUrl] || [];
+    const relatedGroup = findRelatedGroup(currentUrl);
+    const siteToLoad = relatedGroup ? relatedGroup[0] : currentUrl;
+    
+    chrome.storage.local.get([siteToLoad], function(result) {
+      const accounts = result[siteToLoad] || [];
       accounts.splice(index, 1);
       
       chrome.storage.local.set({
-        [currentUrl]: accounts
+        [siteToLoad]: accounts
       }, function() {
-        loadAccounts();
+        loadAccounts(siteToLoad);
       });
     });
   }
