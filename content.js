@@ -1,3 +1,11 @@
+// 自定义域名规则缓存
+let domainRulesCache = {};
+
+// 预加载域名规则
+chrome.storage.local.get(['domainRules'], function(result) {
+  domainRulesCache = result.domainRules || {};
+});
+
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
   if (request.action === 'fillAccount') {
@@ -17,6 +25,19 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * 策略：先定位密码框（特征最明显），再在附近找用户名框
  */
 function findLoginInputs() {
+  // 1. 先检查自定义域名规则
+  const hostname = window.location.hostname;
+  const rule = domainRulesCache[hostname] || domainRulesCache[getTopDomain(hostname)];
+  console.log(rule)
+  if (rule && rule.usernameSelector && rule.passwordSelector) {
+    const usernameInput = document.querySelector(rule.usernameSelector);
+    const passwordInput = document.querySelector(rule.passwordSelector);
+    if (usernameInput && passwordInput) {
+      return { usernameInput, passwordInput };
+    }
+  }
+
+  // 2. 降级到通用匹配
   const allInputs = Array.from(document.querySelectorAll('input'))
     .filter(el => el.type !== 'hidden' && el.type !== 'submit' && el.type !== 'button');
 
@@ -188,6 +209,22 @@ function isVisible(el) {
   if (el.offsetParent === null && getComputedStyle(el).position !== 'fixed') return false;
   const style = getComputedStyle(el);
   return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+}
+
+/**
+ * 获取顶级域名（去除子域名前缀）
+ * 例：mail.qq.com -> qq.com, www.google.co.uk -> google.co.uk
+ */
+function getTopDomain(hostname) {
+  const parts = hostname.split('.');
+  if (parts.length <= 2) return hostname;
+  // 处理常见的二级域名后缀（如 .com.cn, .co.uk）
+  const secondLevelDomains = ['com', 'net', 'org', 'edu', 'gov', 'co', 'ac'];
+  const lastTwo = parts.slice(-2);
+  if (secondLevelDomains.includes(lastTwo[0]) && lastTwo[1].length <= 3) {
+    return parts.slice(-3).join('.');
+  }
+  return parts.slice(-2).join('.');
 }
 
 // 使用原生 setter 设置值并派发事件，让 Vue/React 等框架能感知到变化

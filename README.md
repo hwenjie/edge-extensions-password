@@ -18,6 +18,9 @@ edge浏览器插件，密码管理器
 
 - 支持快捷键 alt1~5 快速填充前5个账号
 
+- 支持自定义匹配规则
+
+
 #### 站点关联功能说明：
 
 `必须有一个主站点，在主站点进行关联。例如：a.com 作为主站点，关联 b.com、b.com 作为子站点`
@@ -28,6 +31,26 @@ edge浏览器插件，密码管理器
    - 子站点不能再进行关联站点操作，只能在主站点进行。
 
 注意：b.com、c.com作为子站点，不能再关联其他站点，否则子站点会出现账号`列表空白`的情况。需要导出json清理关联关系，重新导入恢复正常。
+
+
+
+#### 自定义规则：
+
+```json
+// 对于一些彻底没救的网站，可以使用css选择器强行查找元素
+// 先通过域名匹配，再通过css选择器查找元素
+{
+  "exmail.qq.com": {
+    "passwordSelector": "input[name='pp']",
+    "usernameSelector": "input[name='inputuin']"
+  },
+  "abc.com": {
+    "passwordSelector": "#p",
+    "usernameSelector": "#u"
+  }
+}
+
+```
 
 
 ```

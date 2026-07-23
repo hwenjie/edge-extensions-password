@@ -463,3 +463,56 @@ document.getElementById('togglePasswords').textContent = getMessage('showPasswor
 document.getElementById('linkSites').textContent = getMessage('linkSites');
 document.getElementById('exportData').textContent = getMessage('export');
 // ... 其他文本替换 
+
+// ========== 自定义域名规则管理 ==========
+document.getElementById('customRules').addEventListener('click', function() {
+  chrome.storage.local.get(['domainRules'], function(result) {
+    const currentRules = result.domainRules || {};
+    const currentJson = JSON.stringify(currentRules, null, 2);
+    
+    const input = prompt(
+      '请输入自定义域名规则（JSON格式）：\n\n' +
+      '格式示例：qq企业邮箱\n' +
+      '{\n' +
+      '  "exmail.qq.com": {\n' +
+      '    "usernameSelector": "input[name=\'pp\']",\n' +
+      '    "passwordSelector": "input[name=\'inputuin\']"\n' +
+      '  }\n' +
+      '}\n\n' +
+      '当前规则：',
+      currentJson
+    );
+    
+    if (input === null) return; // 用户点击取消
+    
+    if (input.trim() === '') {
+      // 清空规则
+      chrome.storage.local.set({ domainRules: {} }, function() {
+        alert('自定义规则已清空');
+      });
+      return;
+    }
+    
+    try {
+      const newRules = JSON.parse(input);
+      
+      // 验证格式
+      if (typeof newRules !== 'object' || newRules === null) {
+        throw new Error('规则必须是对象格式');
+      }
+      
+      for (const [domain, rule] of Object.entries(newRules)) {
+        if (!rule.usernameSelector || !rule.passwordSelector) {
+          throw new Error(`域名 "${domain}" 缺少 usernameSelector 或 passwordSelector`);
+        }
+      }
+      
+      // 保存规则
+      chrome.storage.local.set({ domainRules: newRules }, function() {
+        alert('自定义规则保存成功');
+      });
+    } catch (e) {
+      alert('JSON格式错误：' + e.message);
+    }
+  });
+});
