@@ -3,7 +3,7 @@
     "message": "密码管理器"
   },
   "extDescription": {
-    "message": "保存和管理网站账号密码"
+    "message": "保存和管理网站账号密码，支持 WebDAV 加密同步"
   },
   "showPassword": {
     "message": "显示密码"
@@ -96,4 +96,4 @@
   "importError": {
     "message": "导入失败：无效的文件格式"
   }
-} 
+}

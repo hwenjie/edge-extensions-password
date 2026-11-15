@@ -1,5 +1,12 @@
-# edge-extensions-password
-edge浏览器插件，密码管理器
+# 密码管理器 · Chrome / Edge
+
+以 **桌面版 Google Chrome** 为主要目标，兼容 Chromium 版 Microsoft Edge。当前版本 **v1.1.3**，支持 WebDAV 加密同步；两种浏览器加载同一个插件目录即可。
+
+支持手动双向同步、可选的每 15 分钟自动同步、冲突保护与覆盖前备份。
+
+Chrome 安装入口：`chrome://extensions/` →「开发者模式」→「加载已解压的扩展程序」→ 选择包含 `manifest.json` 的文件夹。Edge 对应入口为 `edge://extensions/`。
+
+安装、跨浏览器迁移和同步配置请阅读 [WebDAV 使用说明](./WEBDAV使用说明.md)。
 
 [密码管理器 - Microsoft Edge Addons](https://microsoftedge.microsoft.com/addons/detail/calbgkmccbdhjeclopclefheknmikpkg)
 
@@ -56,8 +63,8 @@ edge浏览器插件，密码管理器
 ```
 1、方便的本地管理各个网站账号密码，尤其适合频繁切换多个账号的场景。
 2、可以关联多个站点，多站点共用一套账号密码。（开发环境、测试环境、生产环境绑定一套密码，不用再单独管理）
-3、本地账号管理安全无风险，导入导出使用JSON格式明文文件
+3、本地账号及 JSON 导出为明文；开启 WebDAV 同步后，上传到云端的文件使用独立口令加密
 4、注意做好备份，避免数据丢失（导出json文件，妥善保存）。
 适合场景
-例如：开发测试人员多账号切换、本地保存密码不希望流入到网络
+例如：开发测试人员多账号切换、本地保存密码，或自选 WebDAV 服务进行加密同步
 ```

@@ -5,11 +5,13 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div id="syncLoading" class="sync-loading">正在检查同步状态…</div>
   <div class="container">
     <div class="actions">
       <button id="togglePasswords">显示密码</button>
       <button id="linkSites">关联站点</button>
       <button id="customRules">自定义规则</button>
+      <button id="webdavSettings">WebDAV 同步</button>
       <button id="exportData">导出</button>
       <button id="importData">导入</button>
       <div class="danger-actions">
@@ -55,6 +57,7 @@
       </div>
     </div>
   </div>
-  <script src="popup.js"></script>
+  <script src="sync-core.js"></script>
+  <script src="popup-boot.js"></script>
 </body>
 </html> 

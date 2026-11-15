@@ -28,7 +28,6 @@ function findLoginInputs() {
   // 1. 先检查自定义域名规则
   const hostname = window.location.hostname;
   const rule = domainRulesCache[hostname] || domainRulesCache[getTopDomain(hostname)];
-  console.log(rule)
   if (rule && rule.usernameSelector && rule.passwordSelector) {
     const usernameInput = document.querySelector(rule.usernameSelector);
     const passwordInput = document.querySelector(rule.passwordSelector);
@@ -311,4 +310,8 @@ function showFillToast(message) {
   toast.style.opacity = '1';
   clearTimeout(toast._timer);
   toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 1500);
-} 
+}
+// Refresh selectors when a synchronized ruleset is applied.
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.domainRules) domainRulesCache = changes.domainRules.newValue || {};
+});
