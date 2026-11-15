@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WebDAV 同步 · 密码管理器</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header><div class="eyebrow">密码管理器 / 同步设置</div><h1>让密码库，随你切换设备。</h1><p>连接自己的 WebDAV，在多台电脑之间同步账号、站点关联和自定义规则。</p></header>
+    <div class="layout">
+      <section class="panel">
+        <h2><span class="step">01</span>连接你的存储</h2>
+        <form id="configForm">
+          <label for="url">WebDAV 目录地址</label>
+          <input id="url" type="url" placeholder="https://dav.example.com/home/edge/" required autocomplete="off" aria-describedby="urlHelp legacyFileHint">
+          <p id="urlHelp" class="hint">填写已存在的目录。插件会在首次同步时自动创建 vault.json，所有设备使用同一目录。</p>
+          <p id="legacyFileHint" class="hint" hidden>已沿用旧版同步文件。修改目录后，插件会自动使用新目录下的 vault.json。</p>
+          <div class="fields">
+            <div><label for="username">WebDAV 用户名</label><input id="username" required autocomplete="off"></div>
+            <div><label for="password">密码 / 应用密码</label><input id="password" type="password" required autocomplete="off"></div>
+          </div>
+          <label for="passphrase">同步加密口令</label>
+          <input id="passphrase" type="password" minlength="12" required autocomplete="new-password" aria-describedby="passphraseHelp">
+          <p id="passphraseHelp" class="hint">至少 12 个字符，所有设备必须一致。请妥善保管，遗失后无法解密云端文件。</p>
+          <label class="check"><input id="autoSync" type="checkbox"><span>自动同步 <small>浏览器运行时约每 15 分钟检查一次</small></span></label>
+          <label class="check"><input id="allowHttp" type="checkbox"><span>允许 HTTP <small>仅用于可信内网；WebDAV 登录凭据将明文传输</small></span></label>
+          <div class="buttons"><button type="submit" class="primary">保存配置并授权</button><button type="button" id="test">测试连接</button></div>
+          <p id="dirtyHint" class="hint" hidden>配置有未保存的修改，请先保存再同步。</p>
+        </form>
+      </section>
+      <aside>
+        <section class="panel status-panel">
+          <div class="eyebrow">同步状态</div><h2 id="statusTitle">尚未配置</h2>
+          <p id="lastSuccess">还没有成功同步记录</p>
+          <div id="feedback" role="status" aria-live="polite">先保存配置，再测试连接。</div>
+          <button id="sync" class="primary wide">立即双向同步</button>
+          <p class="hint">只有一端修改时自动同步该端。两端都修改时暂停，由你决定保留哪一端。</p>
+        </section>
+        <section class="privacy"><strong>上传之前，先在本机加密。</strong><p>云端只保存 AES-256-GCM 加密密码库。WebDAV 凭据与同步口令仅保存在当前浏览器的扩展存储中，不参与同步。</p><p>本地账号和 JSON 导出仍沿用原插件的明文格式。</p></section>
+      </aside>
+    </div>
+    <section class="panel recovery">
+      <h2><span class="step">02</span>冲突与恢复</h2>
+      <p>首次连接时，如果两端都有不同数据，也会暂停同步。以下操作会替换整份密码库；执行前显示两端数量并再次确认。</p>
+      <div class="buttons"><button id="upload">用本地覆盖云端</button><button id="download">用云端覆盖本地</button><button id="restore">恢复上次覆盖前备份</button><button id="exportBackup">导出覆盖前备份</button></div>
+      <p id="backupInfo" class="hint">暂无覆盖前备份</p>
+      <p class="hint">每台设备保留最近一次覆盖前备份；下一次覆盖会更新它。恢复备份后自动同步会关闭。云端更新需要服务端支持强 ETag 和条件写入。</p>
+    </section>
+    <footer>WEBDAV SYNC <span>加密传输文件 · 自有存储 · 多设备同步</span></footer>
+  </main>
+  <script src="sync-core.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

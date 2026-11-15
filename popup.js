@@ -4,7 +4,8 @@ let isPasswordVisible = false;  // 添加密码显示状态跟踪
 
 // 获取当前标签页的URL
 chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-  currentUrl = new URL(tabs[0].url).hostname;
+  try { currentUrl = new URL(tabs[0]?.url || 'about:blank').hostname; } catch { currentUrl = ''; }
+  for (const id of ['saveAccount', 'linkSites', 'clearCurrent']) document.getElementById(id).disabled = !currentUrl;
   loadSiteRelations();
 });
 
@@ -63,20 +64,20 @@ function displayAccounts(accounts) {
       <div class="account-info">
         <div class="account-field">
           <span class="field-label">用户名:</span>
-          <span class="field-value">${account.username}</span>
+          <span class="field-value">${escapeHtml(account.username)}</span>
         </div>
         <div class="account-field">
           <span class="field-label">密码:</span>
           <div class="password-wrapper">
             <span class="field-value password-value" type="password">
-              ${isPasswordVisible ? account.password : '•'.repeat(account.password.length)}
+              ${isPasswordVisible ? escapeHtml(account.password) : '•'.repeat(account.password.length)}
             </span>
           </div>
         </div>
         ${account.note ? `
         <div class="account-field">
           <span class="field-label">备注:</span>
-          <span class="field-value note-value">${account.note}</span>
+          <span class="field-value note-value">${escapeHtml(account.note)}</span>
         </div>
         ` : ''}
       </div>
@@ -91,7 +92,7 @@ function displayAccounts(accounts) {
 }
 
 // 在文件顶部添加全局事件监听器
-document.addEventListener('DOMContentLoaded', function() {
+(function initializePopup() {
   // 处理账号列表的按钮点击
   document.getElementById('accountsList').addEventListener('click', function(e) {
     const button = e.target.closest('button');
@@ -127,8 +128,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改更新密码显示的函数
   function updatePasswordDisplay() {
-    chrome.storage.local.get([currentUrl], function(result) {
-      const accounts = result[currentUrl] || [];
+    const site = findRelatedGroup(currentUrl)?.[0] || currentUrl;
+    chrome.storage.local.get([site], function(result) {
+      const accounts = result[site] || [];
       const passwordValues = document.querySelectorAll('.password-value');
       
       // 由于账号列表是倒序显示的，我们需要反转账号数组来匹配显示顺序
@@ -151,11 +153,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 添加清除当前网站账号功能
   document.getElementById('clearCurrent').addEventListener('click', function() {
-    if (confirm(`确定要清除 ${currentUrl} 下保存的所有账号吗？`)) {
-      chrome.storage.local.get([currentUrl], function(result) {
-        if (result[currentUrl] && result[currentUrl].length > 0) {
-          chrome.storage.local.remove([currentUrl], function() {
-            loadAccounts();
+    const site = findRelatedGroup(currentUrl)?.[0] || currentUrl;
+    if (confirm(`确定要清除 ${site} 下保存的所有账号吗？关联站点也会受影响。`)) {
+      chrome.storage.local.get([site], function(result) {
+        if (result[site] && result[site].length > 0) {
+          chrome.storage.local.remove([site], function() {
+            loadAccounts(site);
             alert('当前网站的账号数据已清除');
           });
         } else {
@@ -167,9 +170,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 修改清除所有账号功能的提示
   document.getElementById('clearAll').addEventListener('click', function() {
-    if (confirm('确定要清除所有网站的账号吗？此操作将清空所有保存的数据且不可恢复！')) {
+    if (confirm('确定要清除所有网站的账号吗？此操作将清空密码库，并保留清空前备份；WebDAV 配置不变。')) {
       if (confirm('再次确认：是否清除所有网站的账号数据？')) {
-        chrome.storage.local.clear(function() {
+        clearPasswordData(function() {
+          siteRelations = {};
           loadAccounts();
           alert('所有网站的账号数据已清除');
         });
@@ -185,6 +189,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // 显示弹窗
   linkSitesBtn.addEventListener('click', function() {
+    if (findRelatedGroup(currentUrl)?.[0] && findRelatedGroup(currentUrl)[0] !== currentUrl) {
+      alert('请在主站点 ' + findRelatedGroup(currentUrl)[0] + ' 管理关联关系'); return;
+    }
     document.getElementById('currentSiteName').textContent = currentUrl;
     // 加载现有的关联站点
     chrome.storage.local.get(['siteRelations'], function(result) {
@@ -203,18 +210,17 @@ document.addEventListener('DOMContentLoaded', function() {
     const relatedSites = document.getElementById('relatedSites').value
       .split(',')
       .map(site => site.trim())
-      .filter(site => site);
+      .filter((site, index, sites) => site && site !== currentUrl && sites.indexOf(site) === index);
 
     chrome.storage.local.get(['siteRelations'], function(result) {
       const relations = result.siteRelations || {};
       
-      // 移除当前站点的旧关联
-      Object.keys(relations).forEach(key => {
-        relations[key] = relations[key].filter(site => site !== currentUrl);
-        if (relations[key].length < 2) {
-          delete relations[key];
-        }
-      });
+      // Prevent overlapping groups, which cannot be synchronized or filled reliably.
+      if (relatedSites.some(site => {
+        const group = Object.values(relations).find(group => group.includes(site));
+        return group && group[0] !== currentUrl;
+      })) { alert('所选站点已属于其他关联组，请先解除原关联'); return; }
+      delete relations[currentUrl];
 
       if (relatedSites.length > 0) {
         // 添加新关联
@@ -226,14 +232,14 @@ document.addEventListener('DOMContentLoaded', function() {
           // 保存关联关系
           chrome.storage.local.set({ siteRelations: relations }, function() {
             modal.style.display = 'none';
-            loadAccounts();
+            loadSiteRelations();
           });
         });
       } else {
         // 如果没有关联站点，直接保存空关系
         chrome.storage.local.set({ siteRelations: relations }, function() {
           modal.style.display = 'none';
-          loadAccounts();
+          loadSiteRelations();
         });
       }
     });
@@ -250,7 +256,7 @@ document.addEventListener('DOMContentLoaded', function() {
       modal.style.display = 'none';
     }
   });
-});
+})();
 
 // 新增一个变量来跟踪编辑状态
 let editingIndex = null;
@@ -352,7 +358,7 @@ function fillAccount(index) {
 // 导出数据
 document.getElementById('exportData').addEventListener('click', function() {
   chrome.storage.local.get(null, function(data) {
-    const jsonString = JSON.stringify(data);
+    const jsonString = JSON.stringify(SyncCore.pickData(data));
     const blob = new Blob([jsonString], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     
@@ -360,6 +366,7 @@ document.getElementById('exportData').addEventListener('click', function() {
     a.href = url;
     a.download = 'passwords_backup.json';
     a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   });
 });
 
@@ -368,25 +375,20 @@ document.getElementById('importData').addEventListener('click', function() {
   document.getElementById('importFile').click();
 });
 
-document.getElementById('importFile').addEventListener('change', function(e) {
+document.getElementById('importFile').addEventListener('change', async function(e) {
   const file = e.target.files[0];
-  const reader = new FileReader();
-  
-  reader.onload = function(e) {
-    try {
-      const data = JSON.parse(e.target.result);
-      chrome.storage.local.clear(function() {
-        chrome.storage.local.set(data, function() {
-          loadAccounts();
-          alert('数据导入成功');
-        });
-      });
-    } catch (error) {
-      alert('导入失败：无效的文件格式');
-    }
-  };
-  
-  reader.readAsText(file);
+  if (!file) return;
+  try {
+    const data = SyncCore.readLocalData(JSON.parse(await file.text()));
+    if (!confirm('导入将替换本地密码库，并保留覆盖前备份。WebDAV 配置会保留。是否继续？')) return;
+    const old = SyncCore.pickData(await chrome.storage.local.get(null));
+    await chrome.storage.local.set({ ...data, [SyncCore.BACKUP]: { data: old, source: '本地导入前', createdAt: new Date().toISOString() } });
+    await chrome.storage.local.remove(Object.keys(old).filter(key => !Object.hasOwn(data, key)));
+    resetForm();
+    loadSiteRelations();
+    alert('数据导入成功');
+  } catch (error) { alert('导入失败：' + error.message); }
+  finally { e.target.value = ''; }
 });
 
 // 添加删除账号功能
@@ -516,3 +518,21 @@ document.getElementById('customRules').addEventListener('click', function() {
     }
   });
 });
+// Sync settings and credentials are never exported or removed by account cleanup.
+document.getElementById('webdavSettings').addEventListener('click', () => {
+  chrome.runtime.openOptionsPage();
+  window.close();
+});
+function clearPasswordData(callback) {
+  chrome.storage.local.get(null, async data => {
+    try {
+      const library = SyncCore.pickData(data);
+      await chrome.storage.local.set({ [SyncCore.BACKUP]: { data: library, source: '本地清空前', createdAt: new Date().toISOString() } });
+      await chrome.storage.local.remove(Object.keys(library));
+      callback();
+    } catch (error) { alert('清除失败：' + error.message); }
+  });
+}
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
+}
